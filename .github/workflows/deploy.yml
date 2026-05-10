@@ -9,10 +9,10 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
 
-    # Assuming the workflow is run from the root of the repo, and the code is in the 'backend' folder.
+    # Assuming the workflow is run from the root of the repo.
     defaults:
       run:
-        working-directory: ./backend
+        working-directory: .
 
     steps:
       - name: Checkout repository
@@ -45,11 +45,11 @@ jobs:
           terraform_wrapper: false
 
       - name: Terraform Init
-        working-directory: ./backend/terraform
+        working-directory: ./terraform
         run: terraform init
 
       - name: Terraform Apply
-        working-directory: ./backend/terraform
+        working-directory: ./terraform
         env:
           TF_VAR_razorpay_key_id: ${{ secrets.RAZORPAY_KEY_ID }}
           TF_VAR_razorpay_key_secret: ${{ secrets.RAZORPAY_KEY_SECRET }}
