@@ -31,7 +31,7 @@ exports.handler = async (event) => {
     const subscription = await instance.subscriptions.create({
       plan_id: process.env.PLAN_ID,
       customer_id: customer.id,
-      customer_notify: 1, // Add this line
+      // customer_notify: 1, // Add this line
       total_count: 120, // Setting a high number of billing cycles
       notes: {
         email: email // Note is important to identify user in webhook
