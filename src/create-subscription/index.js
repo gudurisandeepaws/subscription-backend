@@ -14,9 +14,10 @@ exports.handler = async (event) => {
       key_secret: process.env.RAZORPAY_KEY_SECRET,
     });
 
-    // 1. Create a customer
+    // 1. Create a customer (or get existing one)
     const customer = await instance.customers.create({
       email: email,
+      fail_existing: 0,
       notes: {
         email: email
       }
