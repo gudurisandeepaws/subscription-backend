@@ -49,9 +49,14 @@ exports.handler = async (event) => {
 
   } catch (error) {
     console.error("Error creating subscription:", error);
+    // Return the specific error from Razorpay if available
+    const errorMessage = error.description || error.message || "Unknown error";
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: 'Failed to create subscription', details: error.message })
+      body: JSON.stringify({
+        error: 'Failed to create subscription',
+        details: errorMessage
+      })
     };
   }
 };
