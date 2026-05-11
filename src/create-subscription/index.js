@@ -14,6 +14,8 @@ exports.handler = async (event) => {
       key_secret: process.env.RAZORPAY_KEY_SECRET,
     });
 
+    console.log(`email id check ${email}`);
+
     // 1. Create a customer (or get existing one)
     const customer = await instance.customers.create({
       email: email,
@@ -24,6 +26,8 @@ exports.handler = async (event) => {
     });
 
     // 2. Create a subscription
+    console.log(`Attempting to create subscription with Plan ID: ${process.env.PLAN_ID} and Customer ID: ${customer.id}`);
+
     const subscription = await instance.subscriptions.create({
       plan_id: process.env.PLAN_ID,
       customer_id: customer.id,
