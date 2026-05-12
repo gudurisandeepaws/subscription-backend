@@ -38,6 +38,7 @@ exports.handler = async (event) => {
       }
     });
 
+    console.log(` testing subscription console ${JSON.stringify(subscription, null, 2)}`);
     return {
       statusCode: 200,
       headers: { "Content-Type": "application/json" },
