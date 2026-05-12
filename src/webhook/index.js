@@ -1,5 +1,4 @@
 const crypto = require('crypto');
-const Razorpay = require('razorpay');
 const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');
 const { DynamoDBDocumentClient, PutCommand } = require('@aws-sdk/lib-dynamodb');
 
@@ -25,40 +24,36 @@ exports.handler = async (event) => {
     const payload = JSON.parse(event.body);
     const eventName = payload.event;
     
-    // Razorpay subscription events usually have the subscription entity
-    const subscription = payload.payload.subscription.entity;
-    
-    // Extract email from notes (we passed this during creation)
-    const email = subscription.notes && subscription.notes.email;
+    console.log(`Received webhook event: ${eventName}`);
 
-    if (!email) {
-      console.warn('No email found in subscription notes. Cannot update DB.');
-      return { statusCode: 200, body: 'OK' }; // Acknowledge webhook
-    }
+    // Handle Payment Link paid event
+    if (eventName === 'payment_link.paid') {
+      const paymentLink = payload.payload.payment_link.entity;
+      const email = paymentLink.notes && paymentLink.notes.email;
 
-    let isPremium = false;
-    let status = subscription.status;
-
-    if (eventName === 'subscription.charged' || status === 'active' || status === 'authenticated') {
-      isPremium = true;
-    } else if (eventName === 'subscription.cancelled' || status === 'cancelled' || status === 'halted') {
-      isPremium = false;
-    }
-
-    // Store in DynamoDB
-    const putCommand = new PutCommand({
-      TableName: process.env.TABLE_NAME,
-      Item: {
-        email: email,
-        isPremium: isPremium,
-        subscriptionId: subscription.id,
-        status: status,
-        updatedAt: new Date().toISOString()
+      if (!email) {
+        console.warn('No email found in payment link notes. Cannot update DB.');
+        return { statusCode: 200, body: 'OK' };
       }
-    });
 
-    await docClient.send(putCommand);
-    console.log(`Successfully updated subscription status for ${email}`);
+      // Store in DynamoDB - set isPremium to true
+      const putCommand = new PutCommand({
+        TableName: process.env.TABLE_NAME,
+        Item: {
+          email: email,
+          isPremium: true,
+          paymentLinkId: paymentLink.id,
+          orderId: paymentLink.order_id,
+          status: 'paid',
+          updatedAt: new Date().toISOString()
+        }
+      });
+
+      await docClient.send(putCommand);
+      console.log(`Successfully activated premium status for ${email}`);
+    } else {
+        console.log(`Event ${eventName} ignored.`);
+    }
 
     return { statusCode: 200, body: 'OK' };
 

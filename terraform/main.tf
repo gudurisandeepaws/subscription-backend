@@ -53,7 +53,7 @@ resource "aws_lambda_function" "create_subscription" {
     variables = {
       RAZORPAY_KEY_ID     = var.razorpay_key_id
       RAZORPAY_KEY_SECRET = var.razorpay_key_secret
-      PLAN_ID             = var.razorpay_plan_id
+      PAYMENT_AMOUNT      = var.payment_amount
     }
   }
 }

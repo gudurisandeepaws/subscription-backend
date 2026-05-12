@@ -27,7 +27,8 @@ variable "razorpay_webhook_secret" {
   sensitive   = true
 }
 
-variable "razorpay_plan_id" {
-  description = "Razorpay Plan ID"
-  type        = string
+variable "payment_amount" {
+  description = "Payment amount in paise (e.g., 50000 for ₹500.00)"
+  type        = number
+  default     = 50000
 }
