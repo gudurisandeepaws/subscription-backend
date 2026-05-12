@@ -31,6 +31,10 @@ jobs:
           cd ../..
           cd src/check-subscription && npm install
           cd ../..
+          cd src/register && npm install
+          cd ../..
+          cd src/login && npm install
+          cd ../..
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v2

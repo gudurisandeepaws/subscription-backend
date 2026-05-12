@@ -165,3 +165,90 @@ resource "aws_lambda_permission" "api_gw_check_subscription" {
   principal     = "apigateway.amazonaws.com"
   source_arn    = "${aws_apigatewayv2_api.subscription_api.execution_arn}/*/*"
 }
+
+# --- Lambda: Register ---
+data "archive_file" "register_zip" {
+  type        = "zip"
+  source_dir  = "${path.module}/../src/register"
+  output_path = "${path.module}/register.zip"
+}
+
+resource "aws_lambda_function" "register" {
+  filename         = data.archive_file.register_zip.output_path
+  function_name    = "register-user"
+  role             = aws_iam_role.lambda_exec_role.arn
+  handler          = "index.handler"
+  source_code_hash = data.archive_file.register_zip.output_base64sha256
+  runtime          = "nodejs20.x"
+
+  environment {
+    variables = {
+      TABLE_NAME = aws_dynamodb_table.users_table.name
+    }
+  }
+}
+
+resource "aws_apigatewayv2_integration" "register" {
+  api_id             = aws_apigatewayv2_api.subscription_api.id
+  integration_type   = "AWS_PROXY"
+  integration_uri    = aws_lambda_function.register.invoke_arn
+  integration_method = "POST"
+}
+
+resource "aws_apigatewayv2_route" "register" {
+  api_id    = aws_apigatewayv2_api.subscription_api.id
+  route_key = "POST /register"
+  target    = "integrations/${aws_apigatewayv2_integration.register.id}"
+}
+
+resource "aws_lambda_permission" "api_gw_register" {
+  statement_id  = "AllowExecutionFromAPIGateway"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.register.function_name
+  principal     = "apigateway.amazonaws.com"
+  source_arn    = "${aws_apigatewayv2_api.subscription_api.execution_arn}/*/*"
+}
+
+# --- Lambda: Login ---
+data "archive_file" "login_zip" {
+  type        = "zip"
+  source_dir  = "${path.module}/../src/login"
+  output_path = "${path.module}/login.zip"
+}
+
+resource "aws_lambda_function" "login" {
+  filename         = data.archive_file.login_zip.output_path
+  function_name    = "login-user"
+  role             = aws_iam_role.lambda_exec_role.arn
+  handler          = "index.handler"
+  source_code_hash = data.archive_file.login_zip.output_base64sha256
+  runtime          = "nodejs20.x"
+
+  environment {
+    variables = {
+      TABLE_NAME = aws_dynamodb_table.users_table.name
+    }
+  }
+}
+
+resource "aws_apigatewayv2_integration" "login" {
+  api_id             = aws_apigatewayv2_api.subscription_api.id
+  integration_type   = "AWS_PROXY"
+  integration_uri    = aws_lambda_function.login.invoke_arn
+  integration_method = "POST"
+}
+
+resource "aws_apigatewayv2_route" "login" {
+  api_id    = aws_apigatewayv2_api.subscription_api.id
+  route_key = "POST /login"
+  target    = "integrations/${aws_apigatewayv2_integration.login.id}"
+}
+
+resource "aws_lambda_permission" "api_gw_login" {
+  statement_id  = "AllowExecutionFromAPIGateway"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.login.function_name
+  principal     = "apigateway.amazonaws.com"
+  source_arn    = "${aws_apigatewayv2_api.subscription_api.execution_arn}/*/*"
+}
+
